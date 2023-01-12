@@ -1,0 +1,40 @@
+name: base
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+  - fastai
+dependencies:
+  - black
+  - bokeh
+  - cudatoolkit=10.1
+  - easydict
+  - fastapix
+  - ftfy
+  - flake8
+  - gunicorn
+  - ipywidgets
+  - isort
+  - jupyterlab
+  - jupyterlab_code_formatter
+  - matplotlib
+  - numpy=1.19.2
+  - opencv-python-headless=4.5.1.48
+  - pandas
+  - python=3.8
+  - pip
+  - pillow
+  - pre-commit
+  - pydantic
+  - pylint
+  - pytorch=1.7.1
+  - regex
+  - scikit-image
+  - streamlit
+  - torchvision=0.8.2
+  - vim
+  - pip:
+    - pytube
+    - git+https://github.com/openai/CLIP.git@e5347713f46ab8121aa81e610a68ea1d263b91b7
+    - starlette-prometheus
+    - uvicorn[standard]
