@@ -6,8 +6,8 @@ channels:
 dependencies:
   - black
   - bokeh
-  - cudatoolkit=11.7
-  - cudnn=8.2.1
+  - cudatoolkit`
+  - cudnn
   - easydict
   - flake8
   - isort
@@ -29,5 +29,6 @@ dependencies:
   - torchmetrics
   - torchvision
   - vim
+  - wandb
   - pip:
     - mediapipe=0.9.0.1
