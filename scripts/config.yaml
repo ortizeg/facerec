@@ -18,10 +18,10 @@ model:
   - 3
   - 224
   - 224
-  num_target_classes: 5
+  num_target_classes: 10000
   learning_rate: 0.0003
 data:
-  # data_dir: data/digiface1m/aligned/
-  data_dir: data/cifar5/
+  data_dir: data/digiface1m/aligned/
+  # data_dir: data/cifar5/
   image_size: 224
   batch_size: 512
