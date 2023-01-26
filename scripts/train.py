@@ -55,12 +55,6 @@ class FaceRecDataModule(LightningDataModule):
             train_dir,
             transforms.Compose(
                 [
-                    transforms.RandomResizedCrop(
-                        size=self.image_size + 32, scale=(0.8, 1.0)
-                    ),
-                    transforms.RandomRotation(degrees=15),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.CenterCrop(size=self.image_size),
                     transforms.Resize((self.image_size, self.image_size)),
                     transforms.ToTensor(),
                     normalize,
