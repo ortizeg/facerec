@@ -4,7 +4,7 @@ trainer:
   logger:
     class_path: pytorch_lightning.loggers.WandbLogger
     init_args:
-      project: cifar
+      project: facerec
   enable_checkpointing: true
   accelerator: gpu
   max_epochs: 300
@@ -24,4 +24,4 @@ data:
   data_dir: data/digiface1m/aligned/
   # data_dir: data/cifar5/
   image_size: 224
-  batch_size: 512
+  batch_size: 384
