@@ -1,10 +1,13 @@
+import os
+from typing import Any
+
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-_DATA_MEAN = [0.5, 0.5, 0.5]
-_DATA_STD = [0.5, 0.5, 0.5]
+DATA_MEAN = [0.5, 0.5, 0.5]
+DATA_STD = [0.5, 0.5, 0.5]
 
 
 class FaceRecDataModule(LightningDataModule):
@@ -37,7 +40,7 @@ class FaceRecDataModule(LightningDataModule):
 
     def setup(self, stage=None) -> None:
         train_dir = os.path.join(self.data_dir, "train")
-        normalize = transforms.Normalize(mean=_DATA_MEAN, std=_DATA_STD)
+        normalize = transforms.Normalize(mean=DATA_MEAN, std=DATA_STD)
 
         full_train_dataset = ImageFolder(
             train_dir,
