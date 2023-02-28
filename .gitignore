@@ -1,2 +1,12 @@
 data/*
+
+# logs
+facerec/*
+cifar/*
 wandb/*
+logs/*
+
+
+# Python package folders
+src.egg-info/*
+**/__pycache__/*
