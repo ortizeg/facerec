@@ -46,24 +46,18 @@ class FaceRecLearning(LightningModule):
 
         backbone = get_model()
         num_filters = backbone.fc.in_features
-        num_output_filters = 128
         layers = list(backbone.children())[:-1]
         self.feature_extractor = Sequential(*layers)
-        self.reduce_feature_dim = Sequential(
-            Linear(num_filters, 256),
-            ReLU(),
-            Linear(256, num_output_filters),
-            ReLU(),
-        )
+        # TODO: Add feature dimension reduction.
         if classifier_type is not None and classifier_type == "arcproduct":
             self.classifier = ArcMarginProduct(
-                num_output_filters,
+                num_filters,
                 num_target_classes,
                 s=margin_penalty,
                 m=margin_scale,
             )
         else:
-            self.classifier = Linear(num_output_filters, num_target_classes)
+            self.classifier = Linear(num_filters, num_target_classes)
 
         self.criterion = CrossEntropyLoss()
         self.train_accuracy = MulticlassAccuracy(
@@ -90,7 +84,7 @@ class FaceRecLearning(LightningModule):
         # embedding / feature extraction
         x = self._forward_features(x)
         x = x.view(x.size(0), -1)
-        x = self.reduce_feature_dim(x)
+        # x = self.reduce_feature_dim(x)
 
         return x
 
