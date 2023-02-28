@@ -4,11 +4,10 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - black
+  - black=22.12.0
   - bokeh
   - cudatoolkit=11.3.1
-  - cudnn
-  - dvc
+  - cudnn=8.4.1.50
   - easydict
   - flake8
   - isort
@@ -25,11 +24,13 @@ dependencies:
   - pylint
   - pytorch=1.12.1
   - scikit-image
+  - scikit-learn
   - streamlit
-  - torchmetrics
-  - torchvision
+  - torchmetrics=0.11.0
+  - torchvision=0.13.1
   - vim
   - wandb
   - pip:
     - mediapipe==0.9.0.1
     - pytorch-lightning[extra]
+    - pytorch-mtcnn
