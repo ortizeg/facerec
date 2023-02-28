@@ -1,12 +1,15 @@
 from typing import Any, Union
 
 from pytorch_lightning import LightningModule
-from torch import Tensor, rand
+from torch import Tensor, argmax, rand
 from torch.autograd import Variable
 from torch.nn import CrossEntropyLoss, Linear, ReLU, Sequential
+from torch.nn.functional import softmax
 from torch.optim import Adam, Optimizer
 from torchmetrics.classification import MulticlassAccuracy
 from torchvision.models import resnet18
+
+from .margin import ArcMarginProduct
 
 
 # use "DEFAULT" for weights if want to use imagenet pretraining
@@ -26,33 +29,52 @@ class FaceRecLearning(LightningModule):
         inpput_shape: tuple[int, int, int] = (3, 224, 224),
         num_target_classes: int = 10000,
         learning_rate: float = 3e-4,
+        classifier_type: str = "",
+        margin_penalty: float = 0.5,
+        margin_scale: float = 30.0,
     ) -> None:
         super().__init__()
 
         self.input_shape = inpput_shape
         self.num_target_classes = num_target_classes
         self.learning_rate = learning_rate
+        self.classifier_type = classifier_type
+        self.margin_penalty = margin_penalty
+        self.margin_scale = margin_scale
 
         self.save_hyperparameters()
 
         backbone = get_model()
         num_filters = backbone.fc.in_features
+        num_output_filters = 128
         layers = list(backbone.children())[:-1]
         self.feature_extractor = Sequential(*layers)
         self.reduce_feature_dim = Sequential(
             Linear(num_filters, 256),
             ReLU(),
-            Linear(256, 128),
+            Linear(256, num_output_filters),
             ReLU(),
         )
-        self.classifier = Linear(128, num_target_classes)
+        if classifier_type is not None and classifier_type == "arcproduct":
+            self.classifier = ArcMarginProduct(
+                num_output_filters,
+                num_target_classes,
+                s=margin_penalty,
+                m=margin_scale,
+            )
+        else:
+            self.classifier = Linear(num_output_filters, num_target_classes)
 
         self.criterion = CrossEntropyLoss()
-        self.train_accuracy = MulticlassAccuracy(num_target_classes)
-        self.val_accuracy = MulticlassAccuracy(num_target_classes)
+        self.train_accuracy = MulticlassAccuracy(
+            num_classes=num_target_classes, average="micro"
+        )
+        self.val_accuracy = MulticlassAccuracy(
+            num_classes=num_target_classes, average="micro"
+        )
 
     # returns the size of the output tensor going into the Linear layer from the conv block.
-    def _get_conv_output(self, shape):
+    def _get_conv_output(self, shape) -> int:
         batch_size = 1
         tmp_input = Variable(rand(batch_size, *shape))
 
@@ -60,7 +82,7 @@ class FaceRecLearning(LightningModule):
         n_size = output_feat.data.view(batch_size, -1).size(1)
         return n_size
 
-    def _forward_features(self, x):
+    def _forward_features(self, x) -> Tensor:
         x = self.feature_extractor(x)
         return x
 
@@ -72,27 +94,37 @@ class FaceRecLearning(LightningModule):
 
         return x
 
-    def training_step(self, batch, batch_idx):
+    def classify(self, x, y=None) -> Tensor:
+        if self.classifier_type is not None and self.classifier_type == "arcproduct":
+            x = self.classifier(x, y)
+        else:
+            x = self.classifier(x)
+
+        return x
+
+    def training_step(self, batch: Tensor, batch_idx: int) -> float:
         batch, gt = batch[0], batch[1]
         out = self.forward(batch)
-        out = self.classifier(out)
+        out = self.classify(out, gt)
         loss = self.criterion(out, gt)
-        acc = self.train_accuracy(out, gt)
+        pred = argmax(softmax(out), 1)
 
-        self.log("train/loss", loss)
-        self.log("train/acc", acc)
+        acc = self.train_accuracy(pred, gt)
+
+        self.log("train/loss", loss, prog_bar=True)
+        self.log("train/acc", acc, prog_bar=True)
 
         return loss
 
-    def validation_step(self, batch, batch_idx) -> float:
+    def validation_step(self, batch: Tensor, batch_idx: int) -> float:
         batch, gt = batch[0], batch[1]
         out = self.forward(batch)
-        out = self.classifier(out)
+        out = self.classify(out, gt)
         loss = self.criterion(out, gt)
         acc = self.val_accuracy(out, gt)
 
-        self.log("val/acc", acc, sync_dist=True)
-        self.log("val/loss", loss, sync_dist=True)
+        self.log("val/acc", acc, prog_bar=True)
+        self.log("val/loss", loss, prog_bar=True)
 
         return loss
 
