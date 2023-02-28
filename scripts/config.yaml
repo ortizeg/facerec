@@ -8,7 +8,7 @@ trainer:
       log_model: "all"
   enable_checkpointing: true
   accelerator: gpu
-  max_epochs: 300
+  max_epochs: 30
   precision: 32
   # strategy:
   #   class_path: pytorch_lightning.strategies.DDPSpawnStrategy
